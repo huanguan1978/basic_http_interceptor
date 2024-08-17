@@ -1,0 +1,18 @@
+name: basic_http_interceptor
+description: basic http interceptor for beginners to use.
+version: 0.0.1
+repository: https://github.com/huanguan1978/basic_http_interceptor
+
+environment:
+  sdk: ^3.4.3
+
+# Add regular dependencies here.
+dependencies:
+  basic_logger: ^0.0.1
+  http_interceptor: ^2.0.0
+  logging: ^1.2.0
+  # path: ^1.8.0
+
+dev_dependencies:
+  lints: ^3.0.0
+  test: ^1.24.0
