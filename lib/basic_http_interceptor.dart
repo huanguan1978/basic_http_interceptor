@@ -3,7 +3,6 @@
 /// More dartdocs go here.
 library basic_http_interceptor;
 
-
 import 'package:logging/logging.dart';
 
 import 'package:http_interceptor/http_interceptor.dart'
@@ -24,7 +23,6 @@ part 'src/basic_http_interceptor_header.dart';
 part 'src/basic_http_interceptor_hook.dart';
 part 'src/basic_http_interceptor_test.dart';
 part 'src/basic_http_interceptor_client.dart';
-
 
 // export 'src/basic_http_interceptor_base.dart';
 

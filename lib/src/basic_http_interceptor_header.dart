@@ -1,6 +1,8 @@
 part of '../../basic_http_interceptor.dart';
 
+/// Header Manipulation
 class InterceptorHeader extends InterceptorContract {
+  /// request header
   final Map<String, String> requestHeader;
 
   InterceptorHeader({required this.requestHeader});
