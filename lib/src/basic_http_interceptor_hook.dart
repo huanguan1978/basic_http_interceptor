@@ -1,7 +1,11 @@
 part of '../../basic_http_interceptor.dart';
 
+/// Hook, handle request, handle response
 class InterceptorHook extends InterceptorContract {
+  /// handle request
   final BaseRequest Function(BaseRequest) _requestHook;
+
+  /// handle response
   final BaseResponse Function(BaseResponse) _responseHook;
 
   InterceptorHook(

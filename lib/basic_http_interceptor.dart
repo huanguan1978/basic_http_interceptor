@@ -21,7 +21,6 @@ import 'package:http/io_client.dart' show IOClient;
 part 'src/basic_http_interceptor_logger.dart';
 part 'src/basic_http_interceptor_header.dart';
 part 'src/basic_http_interceptor_hook.dart';
-part 'src/basic_http_interceptor_test.dart';
 part 'src/basic_http_interceptor_client.dart';
 
 // export 'src/basic_http_interceptor_base.dart';

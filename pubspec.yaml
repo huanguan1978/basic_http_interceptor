@@ -1,6 +1,6 @@
 name: basic_http_interceptor
 description: HTTP Interceptors for Beginners, Logging, Headers, Proxies, and Hooks.
-version: 0.0.2
+version: 0.0.3
 repository: https://github.com/huanguan1978/basic_http_interceptor
 
 environment:
@@ -11,7 +11,6 @@ dependencies:
   http: ^1.2.2
   http_interceptor: ^2.0.0
   logging: ^1.2.0
-  # path: ^1.8.0
 
 dev_dependencies:
   lints: ^4.0.0

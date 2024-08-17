@@ -1,6 +1,6 @@
 part of '../../basic_http_interceptor.dart';
 
-/// 按需生成HTTP拦截客户端
+/// get InterceptedClient
 InterceptedClient interceptedClient({
   required List<InterceptorContract> interceptors,
   Map<String, String> proxy = const {},
