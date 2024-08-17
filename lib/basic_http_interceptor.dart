@@ -17,7 +17,6 @@ import 'package:http_interceptor/http_interceptor.dart'
 
 import 'dart:io' show HttpClient;
 
-// ignore: depend_on_referenced_packages
 import 'package:http/io_client.dart' show IOClient;
 
 part 'src/basic_http_interceptor_logger.dart';
