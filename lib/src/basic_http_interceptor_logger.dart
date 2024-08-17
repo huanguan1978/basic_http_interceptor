@@ -6,6 +6,7 @@ class InterceptorLogger extends InterceptorContract {
   InterceptorLogger(this._logger);
 
   @override
+
   /// Logger, request info, response info
   Future<BaseRequest> interceptRequest({
     required BaseRequest request,
