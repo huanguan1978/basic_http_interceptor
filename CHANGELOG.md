@@ -1,4 +1,9 @@
 
+## 0.0.5
+
+- supports all six platforms, with client separated for non-web platforms.
+
+
 ## 0.0.4
 
 - document update

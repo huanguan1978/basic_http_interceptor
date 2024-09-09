@@ -1,7 +1,5 @@
 import 'package:logging/logging.dart';
-
 import 'package:http_interceptor/http_interceptor.dart';
-import 'package:http_interceptor/utils/query_parameters.dart';
 
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
 
@@ -44,7 +42,8 @@ void main() {
   // http://localhost:8000/testdb
   //final url = buildUrlString('http://localhost:8000/testdb', null);
 
-  interClient.get(url.toUri()).then((Response response) {
+  final uri = Uri.parse(url);
+  interClient.get(uri).then((Response response) {
     logger.info('--- response ---');
     logger.info(response.request?.method);
     logger.info(response.request?.url.toString());
