@@ -17,7 +17,8 @@ void main() {
   };
 
   final List<InterceptorContract> interceptors = [
-    InterceptorLogger(logger),
+    // logBody = true, or exist header X-Debug-Body, output body
+    InterceptorLogger(logger, true),
     InterceptorHeader(requestHeader: requestHeader),
   ];
 

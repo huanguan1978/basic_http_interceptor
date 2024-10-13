@@ -6,7 +6,7 @@ library basic_http_interceptor;
 import 'package:logging/logging.dart';
 
 import 'package:http_interceptor/http_interceptor.dart'
-    show BaseRequest, BaseResponse, InterceptorContract, Response;
+    show BaseRequest, BaseResponse, InterceptorContract, Request, Response;
 
 export 'package:http_interceptor/utils/query_parameters.dart'
     show buildUrlString;
