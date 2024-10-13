@@ -1,3 +1,6 @@
+## 0.0.6
+
+- InterceptorLogger，logBody = true, or exist header X-Debug-Body, output body
 
 ## 0.0.5
 
