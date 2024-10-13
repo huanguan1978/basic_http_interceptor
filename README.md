@@ -32,7 +32,8 @@ basic http interceptor for beginners.
   final logger = Logger('main');
 
   final List<InterceptorContract> interceptors = [
-    InterceptorLogger(logger),
+    // logBody = true, or exist header X-Debug-Body, output body
+    InterceptorLogger(logger, true),
   ];
 
   final interClient = interceptedClient(
