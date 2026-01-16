@@ -1,27 +1,31 @@
 part of '../../basic_http_interceptor.dart';
 
+/// Logger, request info, response info
 class InterceptorLogger extends InterceptorContract {
   final Logger _logger;
   bool logBody = false;
   InterceptorLogger(this._logger, [this.logBody = false]);
 
   @override
-
-  /// Logger, request info, response info
   Future<BaseRequest> interceptRequest({
     required BaseRequest request,
   }) async {
-    _logger
-        .info('- interceptRequest, begin, ${DateTime.now().toIso8601String()}');
-    _logger.info(request.headers.toString());
-    _logger.info(request.toString()); // $method $url
+    final ts = DateTime.now().toLocal().millisecondsSinceEpoch;
+    final buf = StringBuffer();
+
+    buf.writeln('- interceptRequest, begin, $ts');
+    buf.writeln(request.headers.toString());
+    buf.writeln(request.toString()); // $method $url
     if (request is Request) {
-      _logger.info('contentLength:${request.contentLength}');
+      buf.writeln('contentLength:${request.contentLength}');
       if (logBody || request.headers.containsKey('X-Debug-Body')) {
-        _logger.info(request.body);
+        buf.writeln(request.body);
       }
     }
-    _logger.info('- interceptRequest, end.');
+    buf.writeln('- interceptRequest, end.');
+
+    _logger.info(buf);
+    buf.clear();
     return request;
   }
 
@@ -29,17 +33,21 @@ class InterceptorLogger extends InterceptorContract {
   Future<BaseResponse> interceptResponse({
     required BaseResponse response,
   }) async {
-    _logger.info(
-        '- interceptResponse, begin, ${DateTime.now().toIso8601String()}');
-    _logger.info(response.statusCode);
-    _logger.info(response.headers.toString());
+    final ts = DateTime.now().toLocal().millisecondsSinceEpoch;
+    final buf = StringBuffer();
 
+    buf.writeln('- interceptResponse, begin, $ts');
+    buf.writeln(response.statusCode);
+    buf.writeln(response.headers.toString());
     if (response is Response) {
       if (logBody || response.headers.containsKey('X-Debug-Body')) {
-        _logger.info(response.body);
+        buf.writeln(response.body);
       }
     }
-    _logger.info('- interceptResponse, end.');
+    buf.writeln('- interceptResponse, end.');
+
+    _logger.info(buf);
+    buf.clear();
     return response;
   }
 }

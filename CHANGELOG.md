@@ -1,6 +1,10 @@
+## 0.0.8
+
+- InterceptorLogger，buffer logs to reduce file I/O operations.
+
 ## 0.0.6
 
-- InterceptorLogger，logBody = true, or exist header X-Debug-Body, output body
+- InterceptorLogger，logBody = true, or exist header X-Debug-Body, output body.
 
 ## 0.0.5
 
