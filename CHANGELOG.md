@@ -1,4 +1,5 @@
-## 0.0.8
+
+## 0.1.0
 
 - InterceptorLogger，buffer logs to reduce file I/O operations.
 
