@@ -1,4 +1,4 @@
-part of '../../basic_http_interceptor.dart';
+part of '../basic_http_interceptor.dart';
 
 /// Header Manipulation
 class InterceptorHeader extends InterceptorContract {

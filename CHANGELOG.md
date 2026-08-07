@@ -1,4 +1,9 @@
 
+## 0.1.1
+
+- InterceptorLogger, add optional `logBodyMax` parameter.
+- InterceptorLogger.interceptResponse, support `StreamedResponse` body logging.
+
 ## 0.1.0
 
 - InterceptorLogger，buffer logs to reduce file I/O operations.
