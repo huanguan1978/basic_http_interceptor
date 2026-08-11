@@ -1,4 +1,9 @@
 
+## 0.1.2
+
+- Add `MethodSwitchingClient` for dynamic request routing between interceptor and default HTTP clients.
+- Document advanced usage with a concise subclass-based channel switching example.
+
 ## 0.1.1
 
 - InterceptorLogger, add optional `logBodyMax` parameter.

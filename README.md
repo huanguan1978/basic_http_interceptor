@@ -137,3 +137,67 @@ basic http interceptor for beginners.
     interceptors: interceptors,
   );
 ```
+
+## Advanced usage
+
+`MethodSwitchingClient` is useful when different requests should use different
+HTTP channels at runtime.
+
+You can extend this class and override `send()` to route each request according
+to your business rules. This is a practical approach for AI requests, file
+uploads, streamed requests, or any call that should bypass interceptors.
+
+In the example below:
+
+- normal requests go through the interceptor client;
+- streamed requests and upload endpoints go through the default client.
+
+```dart
+import 'dart:io';
+
+import 'package:basic_http_interceptor/basic_http_interceptor.dart';
+import 'package:http/io_client.dart';
+import 'package:http_interceptor/http_interceptor.dart';
+import 'package:logging/logging.dart';
+
+class AiRoutingClient extends MethodSwitchingClient {
+  AiRoutingClient(super.intercepted, super.defaulted);
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) {
+    final isUpload = request.url.path.contains('/upload');
+    final shouldBypassInterceptors =
+        request is StreamedRequest || isUpload;
+
+    if (shouldBypassInterceptors) {
+      return defaultClient.send(request);
+    }
+
+    return interceptedClient.send(request);
+  }
+}
+
+final logger = Logger('google-ai');
+
+final proxy = {
+  'no_proxy': 'localhost,127.0.0.1,::1',
+  'https_proxy': 'https://127.0.0.1:7890/',
+  'http_proxy': 'http://127.0.0.1:7890/',
+  'all_proxy': 'socks5://127.0.0.1:7891/',
+};
+
+final httpClient = interceptedClient(
+  proxy: proxy,
+  interceptors: [
+    InterceptorLogger(logger, true),
+  ],
+);
+
+final defaultClient = IOClient(
+  HttpClient()
+    ..findProxy = (url) =>
+        HttpClient.findProxyFromEnvironment(url, environment: proxy),
+);
+
+final aiClient = AiRoutingClient(httpClient, defaultClient);
+```

@@ -22,6 +22,7 @@ export 'package:http_interceptor/utils/query_parameters.dart'
 
 export 'utils/basic_http_interceptor_webclient.dart'
     if (dart.library.io) 'utils/basic_http_interceptor_ioclient.dart';
+export 'utils/basic_http_method_switching_client.dart';
 
 part 'src/basic_http_interceptor_logger.dart';
 part 'src/basic_http_interceptor_header.dart';
