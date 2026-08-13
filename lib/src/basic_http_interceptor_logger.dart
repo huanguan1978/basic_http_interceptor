@@ -58,20 +58,6 @@ class InterceptorLogger extends InterceptorContract {
     metaBuf.writeln(response.headers.toString());
 
     final contentType = response.headers['content-type'];
-    final contentEncoding = response.headers['content-encoding'];
-    final isCompressed = _isCompressedContentEncoding(contentEncoding);
-
-    if (_shouldLogBody(headers: response.headers) &&
-        _isTextualContentType(contentType) &&
-        isCompressed) {
-      metaBuf.writeln(
-        '- interceptResponse, skip body log: compressed content-encoding=$contentEncoding',
-      );
-      metaBuf.writeln('- interceptResponse, end.');
-      _logger.info(metaBuf);
-      metaBuf.clear();
-      return response;
-    }
 
     final shouldProcessBody = _shouldLogBody(headers: response.headers) &&
         _isTextualContentType(contentType);
@@ -90,6 +76,18 @@ class InterceptorLogger extends InterceptorContract {
       }
 
       if (response is StreamedResponse) {
+        final contentEncoding = response.headers['content-encoding'];
+        final isCompressed = _isCompressedContentEncoding(contentEncoding);
+        if (isCompressed) {
+          metaBuf.writeln(
+            '- interceptResponse, skip body log: compressed content-encoding=$contentEncoding',
+          );
+          metaBuf.writeln('- interceptResponse, end.');
+          _logger.info(metaBuf);
+          metaBuf.clear();
+          return response;
+        }
+
         return _logStreamedResponseBody(response, ts);
       }
     }

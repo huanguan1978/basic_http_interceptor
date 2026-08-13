@@ -86,5 +86,37 @@ void main() {
 
       expect(data, equals([31, 139, 8, 0, 0, 0, 0, 0]));
     });
+
+    test('gzip header does not bypass full body logging for Response',
+        () async {
+      Logger.root.level = Level.ALL;
+      final messages = <String>[];
+      final sub = Logger.root.onRecord.listen((event) {
+        messages.add(event.message.toString());
+      });
+
+      final logger = Logger('test.response');
+      final interceptor = InterceptorLogger(logger, false, 8);
+      final response = Response(
+        'hello response',
+        200,
+        headers: {
+          'content-type': 'application/json',
+          'content-encoding': 'gzip',
+          'x-debug-body': 'true',
+        },
+      );
+
+      final wrapped = await interceptor.interceptResponse(response: response);
+
+      await sub.cancel();
+
+      expect(identical(wrapped, response), isTrue);
+      expect(messages.join('\n'), contains('hello response'));
+      expect(
+        messages.join('\n'),
+        isNot(contains('skip body log: compressed content-encoding=gzip')),
+      );
+    });
   });
 }
