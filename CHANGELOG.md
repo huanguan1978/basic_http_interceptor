@@ -1,4 +1,11 @@
 
+## 0.1.3
+
+- Refine `InterceptorLogger` response logging to avoid fully consuming `StreamedResponse` bodies.
+- Log streamed bodies in byte-based segments so SSE and long-lived streams stay responsive.
+- Simplify non-streamed response logging to a single write.
+- Improve `MethodSwitchingClient` routing docs for streaming, SSE, and upload scenarios.
+
 ## 0.1.2
 
 - Add `MethodSwitchingClient` for dynamic request routing between interceptor and default HTTP clients.

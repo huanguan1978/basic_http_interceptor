@@ -50,46 +50,119 @@ class InterceptorLogger extends InterceptorContract {
     required BaseResponse response,
   }) async {
     final ts = DateTime.now().toLocal().millisecondsSinceEpoch;
-    final buf = StringBuffer();
+    final metaBuf = StringBuffer();
 
-    buf.writeln('- interceptResponse, begin, $ts');
-    buf.writeln(response.statusCode);
-    buf.writeln(response.headers.toString());
+    metaBuf.writeln('- interceptResponse, begin, $ts');
+    metaBuf.writeln(response.statusCode);
+    metaBuf.writeln(response.headers.toString());
 
     final contentType = response.headers['content-type'];
-    final contentLength = response.contentLength;
     final shouldProcessBody =
         (logBody || response.headers.containsKey('X-Debug-Body')) &&
-            _isTextualContentType(contentType) &&
-            (contentLength == null || contentLength <= logBodyMax);
+            _isTextualContentType(contentType);
 
     if (shouldProcessBody) {
+      _logger.info(metaBuf);
+      metaBuf.clear();
+
       if (response is Response) {
-        buf.writeln(response.body);
+        final responseBuf = StringBuffer()
+          ..writeln('- interceptResponse, body, $ts')
+          ..writeln(response.body)
+          ..writeln('- interceptResponse, end.');
+        _logger.info(responseBuf);
+        return response;
       }
+
       if (response is StreamedResponse) {
-        response = await _logStreamedResponseBody(response, buf);
+        return _logStreamedResponseBody(response, ts);
       }
     }
 
-    buf.writeln('- interceptResponse, end.');
+    metaBuf.writeln('- interceptResponse, end.');
 
-    _logger.info(buf);
-    buf.clear();
+    _logger.info(metaBuf);
+    metaBuf.clear();
     return response;
   }
 
-  Future<StreamedResponse> _logStreamedResponseBody(
+  StreamedResponse _logStreamedResponseBody(
     StreamedResponse response,
-    StringBuffer buf,
-  ) async {
-    final bodyBytes = await response.stream.toBytes();
-    final bodyText = utf8.decode(bodyBytes, allowMalformed: true);
-    buf.writeln(bodyText);
+    int ts,
+  ) {
+    final bodyBuffer = BytesBuilder(copy: false);
+    var bufferedBytes = 0;
+    var segmentIndex = 0;
 
-    return response.copyWith(
-      stream: Stream.value(bodyBytes),
+    void flushBufferedSegment({bool finalSegment = false}) {
+      if (bufferedBytes == 0) {
+        return;
+      }
+
+      segmentIndex++;
+      final segmentText = utf8.decode(
+        bodyBuffer.takeBytes(),
+        allowMalformed: true,
+      );
+      final segmentBuf = StringBuffer();
+      segmentBuf
+          .writeln('- interceptResponse, body segment $segmentIndex, $ts');
+      if (finalSegment) {
+        segmentBuf.writeln('- interceptResponse, final segment.');
+      }
+      segmentBuf.writeln(segmentText);
+      _logger.info(segmentBuf);
+      bufferedBytes = 0;
+    }
+
+    int appendBytes(List<int> bytes) {
+      var offset = 0;
+
+      while (offset < bytes.length) {
+        if (logBodyMax <= 0) {
+          bodyBuffer.add(bytes.sublist(offset));
+          bufferedBytes += bytes.length - offset;
+          flushBufferedSegment();
+          return 0;
+        }
+
+        final remainingCapacity = logBodyMax - bufferedBytes;
+        final chunkLength = remainingCapacity < bytes.length - offset
+            ? remainingCapacity
+            : bytes.length - offset;
+
+        bodyBuffer.add(bytes.sublist(offset, offset + chunkLength));
+        bufferedBytes += chunkLength;
+        offset += chunkLength;
+
+        if (bufferedBytes >= logBodyMax) {
+          flushBufferedSegment();
+        }
+      }
+
+      return bufferedBytes;
+    }
+
+    final transformedStream = response.stream.transform(
+      StreamTransformer<List<int>, List<int>>.fromHandlers(
+        handleData: (chunk, sink) {
+          appendBytes(chunk);
+          sink.add(chunk);
+        },
+        handleError: (Object error, StackTrace stackTrace, sink) {
+          flushBufferedSegment(finalSegment: true);
+          sink.addError(error, stackTrace);
+        },
+        handleDone: (sink) {
+          flushBufferedSegment(finalSegment: true);
+          final endBuf = StringBuffer()..writeln('- interceptResponse, end.');
+          _logger.info(endBuf);
+          sink.close();
+        },
+      ),
     );
+
+    return response.copyWith(stream: transformedStream);
   }
 
   bool _isTextualContentType(String? contentType) {

@@ -28,6 +28,8 @@ basic http interceptor for beginners.
 
 ## Usage
 
+> Important (v0.1.3+): `InterceptorLogger` now provides stable logging support for streaming responses (`StreamedResponse`). For long-lived streams (such as SSE), it uses side-channel segmented logging while preserving transparent pass-through of the original stream, preventing blocking caused by fully consuming the response body.
+
 ```dart
   final logger = Logger('main');
 
@@ -140,17 +142,41 @@ basic http interceptor for beginners.
 
 ## Advanced usage
 
-`MethodSwitchingClient` is useful when different requests should use different
-HTTP channels at runtime.
+`MethodSwitchingClient` is designed for cases where different requests in the
+same workflow need to travel through different HTTP channels.
 
-You can extend this class and override `send()` to route each request according
-to your business rules. This is a practical approach for AI requests, file
-uploads, streamed requests, or any call that should bypass interceptors.
+Its purpose is not to replace a regular HTTP client. Instead, it gives you a
+single routing point where you can decide which underlying client should
+handle each request, so your transport strategy stays centralized and easy to
+maintain.
 
-In the example below:
+Typical use cases include:
 
-- normal requests go through the interceptor client;
-- streamed requests and upload endpoints go through the default client.
+- sending normal requests through the interceptor client so you keep logging,
+  header injection, hooks, or proxy support
+- sending streamed requests, SSE, long-lived connections, or upload requests
+  through the default client so they are not affected by interceptors
+- routing AI APIs, special third-party endpoints, or specific URL patterns
+  according to your business rules
+- bypassing interceptors for some requests while keeping them enabled for
+  others
+
+If your routing rules are simple, you can extend `MethodSwitchingClient` and
+override `send()` to choose the right client for each request.
+If your routing logic is more complex, you can combine any conditions you need,
+such as request path, HTTP method, headers, or body content.
+
+This pattern gives you a few important benefits:
+
+- your application code does not need to be cluttered with repeated "should
+  this request bypass interceptors?" checks
+- interceptor-based behavior and plain HTTP behavior can coexist in the same
+  project
+- your routing strategy stays flexible and can evolve with your application
+
+The example below shows a realistic routing setup: normal requests go through
+the interceptor client, while upload, streaming, or special API requests go
+through the default client.
 
 ```dart
 import 'dart:io';

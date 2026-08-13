@@ -3,7 +3,9 @@
 /// More dartdocs go here.
 library basic_http_interceptor;
 
+import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http_interceptor/extensions/streamed_response.dart';
 import 'package:http_interceptor/http_interceptor.dart'
