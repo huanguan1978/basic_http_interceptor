@@ -1,4 +1,10 @@
 
+## 0.1.4
+
+- Fix a streamed response logging stall when `content-encoding` is compressed (for example `gzip`).
+- Skip body text logging for compressed streams and keep transparent pass-through.
+- Make `X-Debug-Body` header detection case-insensitive.
+
 ## 0.1.3
 
 - Refine `InterceptorLogger` response logging to avoid fully consuming `StreamedResponse` bodies.

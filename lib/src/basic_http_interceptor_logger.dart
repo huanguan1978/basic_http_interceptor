@@ -3,6 +3,7 @@ part of '../basic_http_interceptor.dart';
 /// Logger, request info, response info
 class InterceptorLogger extends InterceptorContract {
   final Logger _logger;
+  static const String _debugBodyHeader = 'X-Debug-Body';
 
   /// Whether request and response bodies should be logged by default.
   ///
@@ -34,7 +35,7 @@ class InterceptorLogger extends InterceptorContract {
     buf.writeln(request.toString()); // $method $url
     if (request is Request) {
       buf.writeln('contentLength:${request.contentLength}');
-      if (logBody || request.headers.containsKey('X-Debug-Body')) {
+      if (_shouldLogBody(headers: request.headers)) {
         buf.writeln(request.body);
       }
     }
@@ -57,9 +58,23 @@ class InterceptorLogger extends InterceptorContract {
     metaBuf.writeln(response.headers.toString());
 
     final contentType = response.headers['content-type'];
-    final shouldProcessBody =
-        (logBody || response.headers.containsKey('X-Debug-Body')) &&
-            _isTextualContentType(contentType);
+    final contentEncoding = response.headers['content-encoding'];
+    final isCompressed = _isCompressedContentEncoding(contentEncoding);
+
+    if (_shouldLogBody(headers: response.headers) &&
+        _isTextualContentType(contentType) &&
+        isCompressed) {
+      metaBuf.writeln(
+        '- interceptResponse, skip body log: compressed content-encoding=$contentEncoding',
+      );
+      metaBuf.writeln('- interceptResponse, end.');
+      _logger.info(metaBuf);
+      metaBuf.clear();
+      return response;
+    }
+
+    final shouldProcessBody = _shouldLogBody(headers: response.headers) &&
+        _isTextualContentType(contentType);
 
     if (shouldProcessBody) {
       _logger.info(metaBuf);
@@ -100,10 +115,8 @@ class InterceptorLogger extends InterceptorContract {
       }
 
       segmentIndex++;
-      final segmentText = utf8.decode(
-        bodyBuffer.takeBytes(),
-        allowMalformed: true,
-      );
+      final segmentBytes = bodyBuffer.takeBytes();
+      final segmentText = utf8.decode(segmentBytes, allowMalformed: true);
       final segmentBuf = StringBuffer();
       segmentBuf
           .writeln('- interceptResponse, body segment $segmentIndex, $ts');
@@ -115,7 +128,7 @@ class InterceptorLogger extends InterceptorContract {
       bufferedBytes = 0;
     }
 
-    int appendBytes(List<int> bytes) {
+    void appendBytes(List<int> bytes) {
       var offset = 0;
 
       while (offset < bytes.length) {
@@ -123,7 +136,7 @@ class InterceptorLogger extends InterceptorContract {
           bodyBuffer.add(bytes.sublist(offset));
           bufferedBytes += bytes.length - offset;
           flushBufferedSegment();
-          return 0;
+          return;
         }
 
         final remainingCapacity = logBodyMax - bufferedBytes;
@@ -139,8 +152,6 @@ class InterceptorLogger extends InterceptorContract {
           flushBufferedSegment();
         }
       }
-
-      return bufferedBytes;
     }
 
     final transformedStream = response.stream.transform(
@@ -155,14 +166,22 @@ class InterceptorLogger extends InterceptorContract {
         },
         handleDone: (sink) {
           flushBufferedSegment(finalSegment: true);
-          final endBuf = StringBuffer()..writeln('- interceptResponse, end.');
-          _logger.info(endBuf);
+          _logger.info('- interceptResponse, end.');
           sink.close();
         },
       ),
     );
 
     return response.copyWith(stream: transformedStream);
+  }
+
+  bool _shouldLogBody({required Map<String, String> headers}) {
+    return logBody || _hasHeader(headers, _debugBodyHeader);
+  }
+
+  bool _hasHeader(Map<String, String> headers, String name) {
+    final normalizedName = name.toLowerCase();
+    return headers.keys.any((key) => key.toLowerCase() == normalizedName);
   }
 
   bool _isTextualContentType(String? contentType) {
@@ -174,6 +193,21 @@ class InterceptorLogger extends InterceptorContract {
         normalized.contains('xml') ||
         normalized.contains('javascript') ||
         normalized.contains('x-www-form-urlencoded');
+  }
+
+  bool _isCompressedContentEncoding(String? contentEncoding) {
+    if (contentEncoding == null || contentEncoding.isEmpty) {
+      return false;
+    }
+
+    final normalizedValues =
+        contentEncoding.toLowerCase().split(',').map((value) => value.trim());
+
+    return normalizedValues.contains('gzip') ||
+        normalizedValues.contains('deflate') ||
+        normalizedValues.contains('br') ||
+        normalizedValues.contains('compress') ||
+        normalizedValues.contains('zstd');
   }
 
   // cls_lastline

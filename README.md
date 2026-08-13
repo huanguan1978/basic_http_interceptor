@@ -28,7 +28,7 @@ basic http interceptor for beginners.
 
 ## Usage
 
-> Important (v0.1.3+): `InterceptorLogger` now provides stable logging support for streaming responses (`StreamedResponse`). For long-lived streams (such as SSE), it uses side-channel segmented logging while preserving transparent pass-through of the original stream, preventing blocking caused by fully consuming the response body.
+> Important (v0.1.4+): `InterceptorLogger` provides stable logging for `StreamedResponse` with transparent pass-through. For compressed responses (for example `content-encoding: gzip`), body text logging is skipped to avoid stream stalls.
 
 ```dart
   final logger = Logger('main');

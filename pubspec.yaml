@@ -1,7 +1,7 @@
 name: basic_http_interceptor
 description: HTTP Interceptors for Beginners, Logging, Headers, Proxies, and Hooks.
 
-version: 0.1.3
+version: 0.1.4
 
 repository: https://github.com/huanguan1978/basic_http_interceptor
 
