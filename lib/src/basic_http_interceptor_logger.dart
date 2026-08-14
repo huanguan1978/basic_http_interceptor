@@ -88,6 +88,19 @@ class InterceptorLogger extends InterceptorContract {
           return response;
         }
 
+        final transferEncoding = response.headers['transfer-encoding'];
+        final isStreamed =
+            _isStreamedContentType(contentType, transferEncoding);
+        if (isStreamed) {
+          metaBuf.writeln(
+            '- interceptResponse, skip body log: streamed, transfer-encoding=$transferEncoding, content-type=$contentType',
+          );
+          metaBuf.writeln('- interceptResponse, end.');
+          _logger.info(metaBuf);
+          metaBuf.clear();
+          return response;
+        }
+
         return _logStreamedResponseBody(response, ts);
       }
     }
@@ -206,6 +219,30 @@ class InterceptorLogger extends InterceptorContract {
         normalizedValues.contains('br') ||
         normalizedValues.contains('compress') ||
         normalizedValues.contains('zstd');
+  }
+
+  /// Returns true when the response headers indicate streamed content that
+  /// should not be buffered for body logging.
+  bool _isStreamedContentType(String? contentType, String? transferEncoding) {
+    // text/event-stream, application/octet-stream, application/octet-stream-data, application/vnd.docker.stream
+    // application/x-ndjson, application/stream+json, application/x-protobuf, video/MP2T, application/vnd.apple.mpegurl
+    // audio/*, video/*
+
+    if (contentType == null || contentType.isEmpty) {
+      return false;
+    }
+
+    if (transferEncoding case String _
+        when transferEncoding.toLowerCase() == 'chunked') {
+      return true;
+    }
+
+    contentType = contentType.toLowerCase();
+    if (contentType.contains('stream')) return true;
+
+    final others = ['x-ndjson', 'x-protobuf', 'video', 'audio', 'mpeg'];
+    final isMatch = others.any((elem) => contentType!.contains(elem));
+    return isMatch;
   }
 
   // cls_lastline

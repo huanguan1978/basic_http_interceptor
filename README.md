@@ -28,7 +28,7 @@ basic http interceptor for beginners.
 
 ## Usage
 
-> Important (v0.1.4+): `InterceptorLogger` provides stable logging for `StreamedResponse` with transparent pass-through. For compressed streamed responses (for example `content-encoding: gzip`), body text logging is skipped to avoid stream stalls.
+> Important (v0.1.5+): `InterceptorLogger` logs body text for normal `Response` objects. For `StreamedResponse`, body logging is skipped when the content is compressed or identified as a stream.
 
 ```dart
   final logger = Logger('main');

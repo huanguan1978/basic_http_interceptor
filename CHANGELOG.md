@@ -1,4 +1,9 @@
 
+## 0.1.5
+
+- Skip `StreamedResponse` body logging for compressed or known streamed content.
+- Keep body logging unchanged for normal `Response` objects.
+
 ## 0.1.4
 
 - Fix a streamed response logging stall when `content-encoding` is compressed (for example `gzip`).
