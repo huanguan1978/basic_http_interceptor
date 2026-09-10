@@ -5,6 +5,10 @@ version: 0.1.6
 
 repository: https://github.com/huanguan1978/basic_http_interceptor
 
+funding:
+  - https://github.com/sponsors/huanguan1978
+  - https://buymeacoffee.com/huanguan1978
+
 topics:
   - http
   - interceptor
