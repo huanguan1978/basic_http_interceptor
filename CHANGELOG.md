@@ -1,3 +1,5 @@
+## 0.1.6
+- Export `InterceptedClient` and `InterceptorContract` from `http_interceptor` for direct usage.
 
 ## 0.1.5
 

@@ -19,6 +19,9 @@ import 'package:http_interceptor/http_interceptor.dart'
 
 import 'package:logging/logging.dart';
 
+export 'package:http_interceptor/http_interceptor.dart'
+    show InterceptedClient, InterceptorContract;
+
 export 'package:http_interceptor/utils/query_parameters.dart'
     show buildUrlString;
 
