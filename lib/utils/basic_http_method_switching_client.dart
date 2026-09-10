@@ -32,34 +32,19 @@ import 'package:http_interceptor/http_interceptor.dart' as http;
 ///
 /// Example:
 /// ```dart
-/// import 'dart:io';
-///
 /// import 'package:basic_http_interceptor/basic_http_interceptor.dart';
 /// import 'package:googleai_dart/googleai_dart.dart';
-/// import 'package:http/io_client.dart';
 /// import 'package:logging/logging.dart';
 ///
 /// final logger = Logger('google-ai');
 ///
-/// final proxy = {
-///   'no_proxy': 'localhost,127.0.0.1,::1',
-///   'https_proxy': 'https://127.0.0.1:7890/',
-///   'http_proxy': 'http://127.0.0.1:7890/',
-///   'all_proxy': 'socks5://127.0.0.1:7891/',
-/// };
-///
 /// final interceptedClient = interceptedClient(
-///   proxy: proxy,
 ///   interceptors: [
 ///     InterceptorLogger(logger, true),
 ///   ],
 /// );
 ///
-/// final defaultClient = IOClient(
-///   HttpClient()
-///     ..findProxy = (url) =>
-///         HttpClient.findProxyFromEnvironment(url, environment: proxy),
-/// );
+/// final defaultClient = Client();
 ///
 /// final client = MethodSwitchingClient(
 ///   interceptedClient,

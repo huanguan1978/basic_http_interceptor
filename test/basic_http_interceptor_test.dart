@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
-import 'package:http/http.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
@@ -117,6 +116,95 @@ void main() {
         messages.join('\n'),
         isNot(contains('skip body log: compressed content-encoding=gzip')),
       );
+    });
+  });
+
+  group('InterceptorTimeout tests', () {
+    test('wraps plain Request into AbortableRequest with abortTrigger',
+        () async {
+      final interceptor = InterceptorTimeout(Duration(milliseconds: 100));
+      final request = Request('GET', Uri.parse('https://example.com/test'));
+      final intercepted =
+          await interceptor.interceptRequest(request: request);
+
+      expect(intercepted, isA<AbortableRequest>());
+      final abortable = intercepted as AbortableRequest;
+      expect(abortable.abortTrigger, isNotNull);
+    });
+
+    test('triggers onTimeout callback and logger warning when timeout expires',
+        () async {
+      final logger = Logger('test.timeout');
+      final logMessages = <String>[];
+      final sub = Logger.root.onRecord.listen((e) => logMessages.add(e.message));
+
+      BaseRequest? timedOutRequest;
+      final interceptor = InterceptorTimeout(
+        Duration(milliseconds: 30),
+        logger: logger,
+        onTimeout: (req) {
+          timedOutRequest = req;
+        },
+      );
+
+      final request = Request('POST', Uri.parse('https://example.com/api'));
+      final intercepted =
+          await interceptor.interceptRequest(request: request);
+
+      expect(intercepted, isA<AbortableRequest>());
+      final abortable = intercepted as AbortableRequest;
+
+      // Wait for abortTrigger to complete
+      await abortable.abortTrigger;
+      await Future<void>.delayed(Duration(milliseconds: 10));
+
+      expect(timedOutRequest, equals(request));
+      expect(
+        logMessages.join('\n'),
+        contains('request timed out after 30ms and was aborted'),
+      );
+
+      await sub.cancel();
+    });
+
+    test('cancels timeout timer when response is intercepted in time',
+        () async {
+      var timeoutCalled = false;
+      final interceptor = InterceptorTimeout(
+        Duration(milliseconds: 50),
+        onTimeout: (_) {
+          timeoutCalled = true;
+        },
+      );
+
+      final request = Request('GET', Uri.parse('https://example.com/fast'));
+      final intercepted =
+          await interceptor.interceptRequest(request: request);
+
+      final response = Response('ok', 200, request: intercepted);
+      await interceptor.interceptResponse(response: response);
+
+      // Wait past timeout duration
+      await Future<void>.delayed(Duration(milliseconds: 80));
+
+      expect(timeoutCalled, isFalse);
+    });
+
+    test('does not overwrite existing custom abortTrigger', () async {
+      final customCompleter = Completer<void>();
+      final customRequest = AbortableRequest(
+        'GET',
+        Uri.parse('https://example.com/custom'),
+        abortTrigger: customCompleter.future,
+      );
+
+      final interceptor = InterceptorTimeout(Duration(seconds: 10));
+      final intercepted =
+          await interceptor.interceptRequest(request: customRequest);
+
+      expect(identical(intercepted, customRequest), isTrue);
+      expect((intercepted as AbortableRequest).abortTrigger,
+          equals(customCompleter.future));
     });
   });
 }

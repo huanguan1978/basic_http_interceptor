@@ -1,229 +1,239 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# basic_http_interceptor
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
+[![pub package](https://img.shields.io/pub/v/basic_http_interceptor.svg)](https://pub.dev/packages/basic_http_interceptor)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
+A lightweight, pluggable, and battery-included HTTP interceptor toolkit for Dart and Flutter applications.
 
-basic http interceptor for beginners.
+---
 
-## Features
+## Why `basic_http_interceptor`?
 
-- http logger interceptor
-- http header interceptor
-- http request/response hook
-- http proxy
+- 🧩 **Modular & Pluggable**: Mix and match standalone interceptors for logging, headers, timeout abortion, and functional hooks like building blocks.
+- ⚡ **Zero-Boilerplate Wrapper**: Set up an `InterceptedClient` with proxies and interceptor chains in just a few lines of code.
+- 📦 **Complete Re-export**: Single entry point that fully re-exports `package:http` and `package:http_interceptor`—including all request/response classes and handy extensions (`copyWith`, `addParameters`, etc.).
+- 🌐 **Cross-Platform Ready**: Out-of-the-box support for HTTP, HTTPS, and SOCKS5 proxies across all desktop and mobile platforms, with seamless fallback on Web.
 
-## Getting started
+---
+
+## Interceptors at a Glance
+
+| Interceptor | Description | Key Features |
+| :--- | :--- | :--- |
+| **`InterceptorTimeout`** | Physical connection timeout | Backed by `Abortable`; cuts underlying TCP/socket connections, logs warnings, and triggers callbacks. |
+| **`InterceptorLogger`** | High-performance logger | Single-record buffering to minimize disk I/O, protects streamed/binary bodies, supports `X-Debug-Body`. |
+| **`InterceptorHeader`** | Request header injector | Injects default headers (JWT Bearer tokens, API keys, content types). |
+| **`InterceptorHook`** | Functional middleware | Transforms requests and responses using simple closures without creating custom classes. |
+
+---
+
+## Getting Started
+
+Add the package to your `pubspec.yaml`:
 
 ```shell
-    dart pub add basic_http_interceptor
+dart pub add basic_http_interceptor
 ```
 
-## Usage
+Or for Flutter projects:
 
-> Important (v0.1.5+): `InterceptorLogger` logs body text for normal `Response` objects. For `StreamedResponse`, body logging is skipped when the content is compressed or identified as a stream.
-
-```dart
-  final logger = Logger('main');
-
-  final List<InterceptorContract> interceptors = [
-    // logBody = true, or exist header X-Debug-Body, output body
-    InterceptorLogger(logger, true),
-  ];
-
-  final interClient = interceptedClient(
-    interceptors: interceptors,
-  );
-
-  // https://www.google.com/search?q=hello+world
-  final url = buildUrlString(
-    'https://www.google.com',
-    {'q': 'hello world'},
-  );
-
-  interClient.get(url.toUri()).then((Response response) {
-    logger.info('--- response ---');
-    logger.info(response.request?.method);
-    logger.info(response.request?.url.toString());
-    logger.info(response.statusCode);
-    // logger.info(response.headers.toString());
-    // logger.info(response.body.toString());
-  });
-
+```shell
+flutter pub add basic_http_interceptor
 ```
 
-## Additional information
+---
 
-- http header interceptor
+## Quick Start
 
-```dart
-  final jwt = '';
-  final requestHeader = {
-    'Authorization': 'Bearer $jwt',
-  };
-
-  final List<InterceptorContract> interceptors = [
-    InterceptorHeader(requestHeader: requestHeader),
-  ];
-
-  final interClient = interceptedClient(
-    interceptors: interceptors,
-  );
-```
-
-- http proxy
+Only a single import is required to access the entire HTTP and interceptor ecosystem:
 
 ```dart
-  final List<InterceptorContract> interceptors = [
-  ];
-  
-  final proxy = {
-    'no_proxy': 'localhost,127.0.0.1,::1',
-    'https_proxy': 'https://127.0.0.1:7890/',
-    'http_proxy': 'http://127.0.0.1:7890/',
-    'all_proxy': 'socks5://127.0.0.1:7891/',
-  };
-
-  final interClient = interceptedClient(
-    interceptors: interceptors,
-    proxy:proxy,
-  );
-```
-
-- http hook
-
-```dart
-
-  BaseRequest requestHandle(BaseRequest request ){
-    // handle http headers
-    final header = request.headers;
-    header.addAll({
-        'appkey': '',
-        'appid': '',
-    });
-
-    // handle url param
-    final url = request.url;
-    url.addParameters({
-        'timestamp': DateTime.now().microsecondsSinceEpoch,
-    });
-
-    final req = request.copyWith(
-        headers:header,
-        url:url,
-    );
-
-    return req;
-  }
-
-  BaseResponse responseHandle(BaseResponse response ){
-    return response;
-  }
-
-  final interceptorHook = InterceptorHook(
-    requestHook:requestHandle,
-    responseHook:responseHandle,
-  );
-  final List<InterceptorContract> interceptors = [
-    interceptorHook,
-  ];
-  
-  final interClient = interceptedClient(
-    interceptors: interceptors,
-  );
-```
-
-## Advanced usage
-
-`MethodSwitchingClient` is designed for cases where different requests in the
-same workflow need to travel through different HTTP channels.
-
-Its purpose is not to replace a regular HTTP client. Instead, it gives you a
-single routing point where you can decide which underlying client should
-handle each request, so your transport strategy stays centralized and easy to
-maintain.
-
-Typical use cases include:
-
-- sending normal requests through the interceptor client so you keep logging,
-  header injection, hooks, or proxy support
-- sending streamed requests, SSE, long-lived connections, or upload requests
-  through the default client so they are not affected by interceptors
-- routing AI APIs, special third-party endpoints, or specific URL patterns
-  according to your business rules
-- bypassing interceptors for some requests while keeping them enabled for
-  others
-
-If your routing rules are simple, you can extend `MethodSwitchingClient` and
-override `send()` to choose the right client for each request.
-If your routing logic is more complex, you can combine any conditions you need,
-such as request path, HTTP method, headers, or body content.
-
-This pattern gives you a few important benefits:
-
-- your application code does not need to be cluttered with repeated "should
-  this request bypass interceptors?" checks
-- interceptor-based behavior and plain HTTP behavior can coexist in the same
-  project
-- your routing strategy stays flexible and can evolve with your application
-
-The example below shows a realistic routing setup: normal requests go through
-the interceptor client, while upload, streaming, or special API requests go
-through the default client.
-
-```dart
-import 'dart:io';
-
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
-import 'package:http/io_client.dart';
-import 'package:http_interceptor/http_interceptor.dart';
 import 'package:logging/logging.dart';
 
-class AiRoutingClient extends MethodSwitchingClient {
-  AiRoutingClient(super.intercepted, super.defaulted);
+void main() async {
+  final logger = Logger('HTTP');
 
-  @override
-  Future<StreamedResponse> send(BaseRequest request) {
-    final isUpload = request.url.path.contains('/upload');
-    final shouldBypassInterceptors =
-        request is StreamedRequest || isUpload;
+  final client = interceptedClient(
+    interceptors: [
+      // 1. Inject default headers
+      InterceptorHeader(requestHeader: {
+        'Authorization': 'Bearer YOUR_JWT_TOKEN',
+        'Accept': 'application/json',
+      }),
+      // 2. Abort connection on 60s timeout
+      InterceptorTimeout(
+        Duration(seconds: 60),
+        logger: logger,
+      ),
+      // 3. Log request & response
+      InterceptorLogger(logger, true),
+    ],
+    proxy: {
+      'https_proxy': 'https://127.0.0.1:7890/',
+      'http_proxy': 'http://127.0.0.1:7890/',
+      'all_proxy': 'socks5://127.0.0.1:7891/',
+      'no_proxy': 'localhost,127.0.0.1',
+    },
+  );
 
-    if (shouldBypassInterceptors) {
-      return defaultClient.send(request);
-    }
+  final url = buildUrlString(
+    'https://api.example.com/data',
+    {'query': 'dart'},
+  );
 
-    return interceptedClient.send(request);
-  }
+  final response = await client.get(Uri.parse(url));
+  print('Status: ${response.statusCode}');
 }
+```
 
-final logger = Logger('google-ai');
+---
 
-final proxy = {
-  'no_proxy': 'localhost,127.0.0.1,::1',
-  'https_proxy': 'https://127.0.0.1:7890/',
-  'http_proxy': 'http://127.0.0.1:7890/',
-  'all_proxy': 'socks5://127.0.0.1:7891/',
-};
+## Modular Recipes
 
+### 1. Connection Timeout & Hard Abortion (`InterceptorTimeout`)
+
+Unlike standard `Future.timeout` which only stops waiting in Dart while leaving the network socket open in the background, `InterceptorTimeout` leverages Dart's `Abortable` mechanism to **physically terminate the underlying socket/TCP connection**.
+
+```dart
+final client = interceptedClient(
+  interceptors: [
+    InterceptorTimeout(
+      Duration(seconds: 60),
+      logger: logger, // Automatically writes a warning when timed out
+      onTimeout: (request) {
+        print('Aborted timed out request: ${request.method} ${request.url}');
+      },
+    ),
+  ],
+);
+```
+
+### 2. High-Performance Logging (`InterceptorLogger`)
+
+`InterceptorLogger` formats and logs requests and responses with production-ready safeguards:
+- **I/O Optimization**: Buffers multi-line metadata into single log records to avoid excessive file write operations.
+- **Stream Protection**: Skips logging or limits buffer size on compressed (`gzip`, `br`, `zstd`) and binary/streamed responses (e.g., SSE, video/audio) to avoid blocking memory.
+- **Selective Body Logging**: Set `logBody = false` globally and pass `X-Debug-Body: true` in specific request headers to debug individual endpoints.
+
+```dart
+final client = interceptedClient(
+  interceptors: [
+    InterceptorLogger(
+      logger,
+      false, // logBody: false by default
+      2 * 1024 * 1024, // logBodyMax: maximum 2MB buffer for stream inspection
+    ),
+  ],
+);
+```
+
+### 3. Header Injection (`InterceptorHeader`)
+
+Attach global headers such as authentication tokens, custom user-agents, or tracking IDs:
+
+```dart
+final client = interceptedClient(
+  interceptors: [
+    InterceptorHeader(requestHeader: {
+      'Authorization': 'Bearer $jwtToken',
+      'X-App-Version': '1.0.0',
+    }),
+  ],
+);
+```
+
+### 4. Functional Request & Response Hooks (`InterceptorHook`)
+
+Inspect or transform requests/responses on the fly without subclassing:
+
+```dart
+final client = interceptedClient(
+  interceptors: [
+    InterceptorHook(
+      requestHook: (request) {
+        // Dynamically append query parameters or headers
+        final updatedUrl = request.url.addParameters({
+          'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
+        });
+        return request.copyWith(url: updatedUrl);
+      },
+      responseHook: (response) {
+        // Inspect or transform response data
+        return response;
+      },
+    ),
+  ],
+);
+```
+
+### 5. Multi-Protocol Proxies
+
+Easily route traffic through HTTP, HTTPS, or SOCKS5 proxies:
+
+```dart
+final client = interceptedClient(
+  interceptors: [...],
+  proxy: {
+    'http_proxy': 'http://127.0.0.1:7890/',
+    'https_proxy': 'https://127.0.0.1:7890/',
+    'all_proxy': 'socks5://127.0.0.1:7891/',
+    'no_proxy': 'localhost,127.0.0.1,::1',
+  },
+);
+```
+
+---
+
+## Advanced: Dynamic Request Routing (`MethodSwitchingClient`)
+
+`MethodSwitchingClient` provides a centralized routing point to dispatch requests between an **interceptor client** and a **default/raw HTTP client** dynamically.
+
+This is particularly useful when:
+- Normal API requests should go through logging and header interceptors.
+- AI Streaming requests (OpenAI, Anthropic, Gemini), SSE, or large file uploads need to bypass interceptors for performance.
+
+```dart
+import 'package:basic_http_interceptor/basic_http_interceptor.dart';
+import 'package:logging/logging.dart';
+
+final logger = Logger('Network');
+
+// 1. Client with full interceptor suite
 final httpClient = interceptedClient(
-  proxy: proxy,
   interceptors: [
     InterceptorLogger(logger, true),
+    InterceptorHeader(requestHeader: {'Authorization': 'Bearer $token'}),
   ],
 );
 
-final defaultClient = IOClient(
-  HttpClient()
-    ..findProxy = (url) =>
-        HttpClient.findProxyFromEnvironment(url, environment: proxy),
-);
+// 2. Plain default client (platform-agnostic: IOClient on native, BrowserClient on Web)
+final defaultClient = Client();
 
-final aiClient = AiRoutingClient(httpClient, defaultClient);
+// 3. Dynamic switching client with custom routing
+final client = MethodSwitchingClient(
+  httpClient,
+  defaultClient,
+  useDefaultClientWhen: (request) {
+    // Bypass interceptors for streaming endpoints or file uploads
+    final isStreaming = request.url.path.contains('/stream') ||
+        request.headers['accept'] == 'text/event-stream';
+    return isStreaming || request is StreamedRequest;
+  },
+);
 ```
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 💖 Support the Project
+If you find this tool helpful and would like to see it continue to improve and evolve, please consider showing your support.
+
+*   ⭐ **Star the Repo**: This is a great encouragement. Your stars help more people discover this tool and gain more recognition in the community.
+*   ☕ **Support the Developer (Global)**: Any contribution, however small, is a huge affirmation of my work. You can support via [GitHub Sponsors](https://github.com/sponsors/huanguan1978) or [Buy Me a Coffee](https://buymeacoffee.com/huanguan1978).
+*   🐼 **Support via Ifdian (Mainland China)**: Users in China can also show support via [Ifdian](https://ifdian.net/a/huanguan1978).
+
+*Thank you for your support, which is a vital boost that keeps me focused on the project's continuous iteration; because of you, more people can benefit from this tool much sooner.*

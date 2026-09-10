@@ -1,11 +1,28 @@
 part of '../basic_http_interceptor.dart';
 
-/// Hook, handle request, handle response
+/// An interceptor that transforms requests and responses using custom callback functions.
+///
+/// Example:
+/// ```dart
+/// final client = interceptedClient(
+///   interceptors: [
+///     InterceptorHook(
+///       requestHook: (request) {
+///         request.headers['X-Timestamp'] = DateTime.now().toIso8601String();
+///         return request;
+///       },
+///       responseHook: (response) {
+///         return response;
+///       },
+///     ),
+///   ],
+/// );
+/// ```
 class InterceptorHook extends InterceptorContract {
-  /// handle request
+  /// Callback to inspect or modify the outgoing request.
   final BaseRequest Function(BaseRequest) _requestHook;
 
-  /// handle response
+  /// Callback to inspect or modify the incoming response.
   final BaseResponse Function(BaseResponse) _responseHook;
 
   InterceptorHook(

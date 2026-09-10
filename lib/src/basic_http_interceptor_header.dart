@@ -1,8 +1,20 @@
 part of '../basic_http_interceptor.dart';
 
-/// Header Manipulation
+/// An interceptor that attaches a predefined set of HTTP headers to every outgoing request.
+///
+/// Example:
+/// ```dart
+/// final client = interceptedClient(
+///   interceptors: [
+///     InterceptorHeader(requestHeader: {
+///       'Authorization': 'Bearer $jwtToken',
+///       'Accept': 'application/json',
+///     }),
+///   ],
+/// );
+/// ```
 class InterceptorHeader extends InterceptorContract {
-  /// request header
+  /// The headers to attach to each outgoing request.
   final Map<String, String> requestHeader;
 
   InterceptorHeader({required this.requestHeader});

@@ -1,6 +1,25 @@
 part of '../basic_http_interceptor.dart';
 
-/// Logger, request info, response info
+/// An interceptor that logs HTTP requests and responses using the `logging` package.
+///
+/// Features:
+/// - Logs request headers, method, URL, and body.
+/// - Logs response status code, headers, and body.
+/// - Buffers output into single log records to minimize file I/O operations.
+/// - Handles streamed responses safely by limiting byte buffering and skipping
+///   binary/compressed streams.
+/// - Body logging can be enabled globally with [logBody] or per-request using
+///   the `X-Debug-Body` header.
+///
+/// Example:
+/// ```dart
+/// final logger = Logger('HttpClient');
+/// final client = interceptedClient(
+///   interceptors: [
+///     InterceptorLogger(logger, true), // logs both headers and bodies
+///   ],
+/// );
+/// ```
 class InterceptorLogger extends InterceptorContract {
   final Logger _logger;
   static const String _debugBodyHeader = 'X-Debug-Body';

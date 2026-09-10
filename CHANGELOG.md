@@ -1,5 +1,16 @@
 ## 0.1.6
-- Export `InterceptedClient` and `InterceptorContract` from `http_interceptor` for direct usage.
+
+### Features
+- Add `InterceptorTimeout` to enforce physical socket/connection abortion on timeout using `Abortable`, with optional `Logger` warnings and `onTimeout` callbacks.
+
+### Improvements & DX
+- Re-export `package:http_interceptor/http_interceptor.dart` completely. All standard HTTP classes (`Client`, `Request`, `Response`, `StreamedResponse`, `ClientException`, `RequestAbortedException`, etc.) and extension methods (`copyWith`, `addParameters`, etc.) are now accessible directly from `basic_http_interceptor`.
+- Refresh English doc comments and include runnable usage examples for all interceptors and factory methods.
+- Update `README.md` with complete modular interceptor recipes and cross-platform examples.
+
+### Notes for Upgrading
+- **Fully Backward Compatible**: No breaking changes.
+- **Import Cleanup**: You can now safely remove redundant `import 'package:http/http.dart';` and `import 'package:http_interceptor/http_interceptor.dart';` statements across your codebase.
 
 ## 0.1.5
 
