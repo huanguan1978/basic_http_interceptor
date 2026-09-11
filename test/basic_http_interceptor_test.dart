@@ -5,6 +5,36 @@ import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('HTTP client helper tests', () {
+    test('normalizes Authorization header names without modifying input', () {
+      final headers = {
+        'authorization': 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.signature',
+        'Accept': 'application/json',
+      };
+
+      final normalized = normalizeAuthorizationHeaders(headers);
+
+      expect(normalized['Authorization'], startsWith('Bearer '));
+      expect(normalized['Accept'], equals('application/json'));
+      expect(headers.containsKey('authorization'), isTrue);
+      expect(headers.containsKey('Authorization'), isFalse);
+    });
+
+    test('infers Basic authentication from Base64 credentials', () {
+      expect(
+        inferAuthorizationHeaderValue('dXNlcjpwYXNz'),
+        equals('Basic dXNlcjpwYXNz'),
+      );
+    });
+
+    test('preserves an existing authorization scheme', () {
+      expect(
+        inferAuthorizationHeaderValue('Bearer opaque-token'),
+        equals('Bearer opaque-token'),
+      );
+    });
+  });
+
   group('InterceptorHeader tests', () {
     final jwt = '';
     final requestHeader = {
@@ -124,8 +154,7 @@ void main() {
         () async {
       final interceptor = InterceptorTimeout(Duration(milliseconds: 100));
       final request = Request('GET', Uri.parse('https://example.com/test'));
-      final intercepted =
-          await interceptor.interceptRequest(request: request);
+      final intercepted = await interceptor.interceptRequest(request: request);
 
       expect(intercepted, isA<AbortableRequest>());
       final abortable = intercepted as AbortableRequest;
@@ -136,7 +165,8 @@ void main() {
         () async {
       final logger = Logger('test.timeout');
       final logMessages = <String>[];
-      final sub = Logger.root.onRecord.listen((e) => logMessages.add(e.message));
+      final sub =
+          Logger.root.onRecord.listen((e) => logMessages.add(e.message));
 
       BaseRequest? timedOutRequest;
       final interceptor = InterceptorTimeout(
@@ -148,8 +178,7 @@ void main() {
       );
 
       final request = Request('POST', Uri.parse('https://example.com/api'));
-      final intercepted =
-          await interceptor.interceptRequest(request: request);
+      final intercepted = await interceptor.interceptRequest(request: request);
 
       expect(intercepted, isA<AbortableRequest>());
       final abortable = intercepted as AbortableRequest;
@@ -178,8 +207,7 @@ void main() {
       );
 
       final request = Request('GET', Uri.parse('https://example.com/fast'));
-      final intercepted =
-          await interceptor.interceptRequest(request: request);
+      final intercepted = await interceptor.interceptRequest(request: request);
 
       final response = Response('ok', 200, request: intercepted);
       await interceptor.interceptResponse(response: response);

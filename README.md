@@ -87,6 +87,30 @@ void main() async {
 }
 ```
 
+## Reusable Client Factory
+
+`proxyClient` is a versatile and extensible convenience factory for applications that want a standard interceptor pipeline while retaining full control over application-level configuration.
+
+**All parameters are optional**, allowing you to provide only what you need (e.g., custom interceptors, request headers, timeouts, or proxy settings) on demand according to different use cases. Authorization values without an explicit scheme are automatically recognized as JWT Bearer tokens or Base64 Basic credentials.
+
+```dart
+final client = proxyClient(
+  interceptors: customInterceptors, // Optional: custom interceptors
+  headers: {'Authorization': token}, // Optional: default headers
+  timeout: loadTimeoutFromApplicationSettings(), // Optional: timeout duration
+  proxy: loadProxyFromApplicationSettings(), // Optional: proxy configurations
+  logger: logger, // Optional: logger instance
+);
+```
+
+The package does not read UI state or application persistence directly. A host
+application can provide separate resolver methods for values manually entered
+by users, stored in preferences, or discovered from the system environment,
+then pass their results to `proxyClient`. The helper methods
+`normalizeAuthorizationHeaders`, `inferAuthorizationHeaderValue`, `isJwt`,
+and `isBase64Credentials` are also available independently when an
+application only needs header or token processing.
+
 ---
 
 ## Modular Recipes

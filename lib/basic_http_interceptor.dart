@@ -15,12 +15,17 @@ import 'package:http_interceptor/http_interceptor.dart'
         BaseRequest,
         BaseResponse,
         InterceptorContract,
+        InterceptedClient,
         MultipartRequest,
         Request,
         Response,
         StreamedResponse;
 
 import 'package:logging/logging.dart';
+
+import 'utils/basic_http_interceptor_webclient.dart'
+    if (dart.library.io) 'utils/basic_http_interceptor_ioclient.dart'
+    show interceptedClient;
 
 export 'package:http_interceptor/http_interceptor.dart';
 
@@ -35,6 +40,7 @@ part 'src/basic_http_interceptor_logger.dart';
 part 'src/basic_http_interceptor_header.dart';
 part 'src/basic_http_interceptor_hook.dart';
 part 'src/basic_http_interceptor_timeout.dart';
+part 'src/basic_http_interceptor_client.dart';
 
 // export 'src/basic_http_interceptor_base.dart';
 

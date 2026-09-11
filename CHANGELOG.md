@@ -1,3 +1,16 @@
+## 0.1.7
+
+### Features
+- Add `proxyClient` convenience factory: a versatile and extensible HTTP client builder where all parameters are optional and can be composed on demand (custom interceptors, default headers, timeout duration, proxy rules, and logger).
+- Add automatic authorization header normalization and token inference helpers:
+  - `normalizeAuthorizationHeaders`: Normalizes authorization headers case-insensitively.
+  - `inferAuthorizationHeaderValue`: Automatically infers JWT Bearer tokens or Base64 Basic credentials when schemes are omitted.
+  - `isJwt` & `isBase64Credentials`: Format validation helper utilities.
+
+### Documentation & DX
+- Update `README.md` with the `Reusable Client Factory` guide, highlighting optional parameter flexibility and modular configuration.
+- Comprehensive unit test coverage for `proxyClient` and token inference helpers.
+
 ## 0.1.6
 
 ### Features
