@@ -11,7 +11,7 @@ A lightweight, pluggable, and battery-included HTTP interceptor toolkit for Dart
 
 - 🧩 **Modular & Pluggable**: Mix and match standalone interceptors for logging, headers, timeout abortion, and functional hooks like building blocks.
 - ⚡ **Zero-Boilerplate Wrapper**: Set up an `InterceptedClient` with proxies and interceptor chains in just a few lines of code.
-- 📦 **Complete Re-export**: Single entry point that fully re-exports `package:http` and `package:http_interceptor`—including all request/response classes and handy extensions (`copyWith`, `addParameters`, etc.).
+- 📦 **Clean Sub-Libraries**: Dedicated sub-library entrypoints (`http.dart` & `http_interceptor.dart`) keep the root namespace clean while providing full access to raw HTTP primitives and interceptor contracts without extra dependencies.
 - 🌐 **Cross-Platform Ready**: Out-of-the-box support for HTTP, HTTPS, and SOCKS5 proxies across all desktop and mobile platforms, with seamless fallback on Web.
 
 ---
@@ -45,7 +45,7 @@ flutter pub add basic_http_interceptor
 
 ## Quick Start
 
-Only a single import is required to access the entire HTTP and interceptor ecosystem:
+Easily configure and build an intercepted HTTP client:
 
 ```dart
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
@@ -219,6 +219,7 @@ This is particularly useful when:
 
 ```dart
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
+import 'package:basic_http_interceptor/http.dart';
 import 'package:logging/logging.dart';
 
 final logger = Logger('Network');
@@ -245,6 +246,28 @@ final client = MethodSwitchingClient(
     return isStreaming || request is StreamedRequest;
   },
 );
+```
+
+---
+
+## Dedicated Sub-Libraries
+
+To prevent global namespace pollution (such as `package:http`'s top-level functions `get()`, `post()` or common class names like `Response`/`Request` conflicting with Flutter widgets or local methods), `basic_http_interceptor` encapsulates underlying packages into dedicated sub-libraries:
+
+### 1. `package:basic_http_interceptor/http.dart`
+Re-exports `package:http`. Downstream applications can access standard HTTP classes without declaring a direct dependency in `pubspec.yaml`:
+```dart
+import 'package:basic_http_interceptor/http.dart' as http;
+
+Future<void> fetch() async {
+  final http.Response res = await http.get(Uri.parse('https://api.example.com'));
+}
+```
+
+### 2. `package:basic_http_interceptor/http_interceptor.dart`
+Re-exports `package:http_interceptor` for advanced custom interceptor contracts (`InterceptorContract`, `RetryPolicy`, etc.):
+```dart
+import 'package:basic_http_interceptor/http_interceptor.dart';
 ```
 
 ---
