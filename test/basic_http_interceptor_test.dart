@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
+import 'package:basic_http_interceptor/http.dart';
+import 'package:basic_http_interceptor/http_interceptor.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 

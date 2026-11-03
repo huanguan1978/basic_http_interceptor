@@ -1,6 +1,7 @@
 import 'package:logging/logging.dart';
 
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
+import 'package:basic_http_interceptor/http_interceptor.dart';
 
 void main() {
   Logger.root.level = Level.ALL;

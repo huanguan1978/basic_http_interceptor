@@ -27,7 +27,8 @@ import 'utils/basic_http_interceptor_webclient.dart'
     if (dart.library.io) 'utils/basic_http_interceptor_ioclient.dart'
     show interceptedClient;
 
-export 'package:http_interceptor/http_interceptor.dart';
+export 'package:http_interceptor/http_interceptor.dart'
+    show InterceptedClient, InterceptorContract;
 
 export 'package:http_interceptor/utils/query_parameters.dart'
     show buildUrlString;
