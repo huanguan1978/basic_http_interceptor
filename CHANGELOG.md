@@ -1,3 +1,11 @@
+## 0.1.9
+
+### Added
+- **Sub-library Entrypoint `package:basic_http_interceptor/io_client.dart`**:
+  - Re-exports `package:http/io_client.dart` (exposing [IOClient]) so native/VM applications can access `IOClient` directly without adding `package:http` to their `pubspec.yaml`.
+  - Keeps platform-specific `dart:io` dependencies isolated, preserving 100% Web and WASM compatibility for the root library and `http.dart`.
+  - Adds `proxyIoClient`: a convenient factory to build raw, non-intercepted `IOClient` instances with environment-based proxy configurations (`http_proxy`, `https_proxy`, `all_proxy`, `no_proxy`) and optional SSL certificate verification callbacks (`badCertificateCallback`).
+
 ## 0.1.8
 
 ### Changed

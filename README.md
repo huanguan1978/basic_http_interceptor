@@ -11,7 +11,7 @@ A lightweight, pluggable, and battery-included HTTP interceptor toolkit for Dart
 
 - 🧩 **Modular & Pluggable**: Mix and match standalone interceptors for logging, headers, timeout abortion, and functional hooks like building blocks.
 - ⚡ **Zero-Boilerplate Wrapper**: Set up an `InterceptedClient` with proxies and interceptor chains in just a few lines of code.
-- 📦 **Clean Sub-Libraries**: Dedicated sub-library entrypoints (`http.dart` & `http_interceptor.dart`) keep the root namespace clean while providing full access to raw HTTP primitives and interceptor contracts without extra dependencies.
+- 📦 **Clean Sub-Libraries**: Dedicated sub-library entrypoints (`http.dart`, `http_interceptor.dart`, & `io_client.dart`) keep the root namespace clean while providing full access to raw HTTP primitives, interceptor contracts, and native IO clients without extra dependencies.
 - 🌐 **Cross-Platform Ready**: Out-of-the-box support for HTTP, HTTPS, and SOCKS5 proxies across all desktop and mobile platforms, with seamless fallback on Web.
 
 ---
@@ -268,6 +268,25 @@ Future<void> fetch() async {
 Re-exports `package:http_interceptor` for advanced custom interceptor contracts (`InterceptorContract`, `RetryPolicy`, etc.):
 ```dart
 import 'package:basic_http_interceptor/http_interceptor.dart';
+```
+
+### 3. `package:basic_http_interceptor/io_client.dart`
+Re-exports `package:http/io_client.dart` (`IOClient`) and provides `proxyIoClient` for raw, non-intercepted native IO clients. Keeps `dart:io` platform code isolated so Flutter Web / WASM projects remain 100% compatible.
+
+```dart
+import 'package:basic_http_interceptor/io_client.dart';
+
+// Create a raw IOClient preconfigured with proxies (no interceptor overhead)
+final rawClient = proxyIoClient(
+  proxy: {
+    'https_proxy': 'https://127.0.0.1:7890/',
+    'http_proxy': 'http://127.0.0.1:7890/',
+    'all_proxy': 'socks5://127.0.0.1:7891/',
+    'no_proxy': 'localhost,127.0.0.1',
+  },
+  // Optional: bypass self-signed certificates in local development
+  badCertificateCallback: (cert, host, port) => true,
+);
 ```
 
 ---

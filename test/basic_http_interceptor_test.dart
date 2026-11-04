@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
 import 'package:basic_http_interceptor/http.dart';
 import 'package:basic_http_interceptor/http_interceptor.dart';
+import 'package:basic_http_interceptor/io_client.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
@@ -235,6 +236,24 @@ void main() {
       expect(identical(intercepted, customRequest), isTrue);
       expect((intercepted as AbortableRequest).abortTrigger,
           equals(customCompleter.future));
+    });
+  });
+
+  group('IOClient sub-library tests', () {
+    test('creates raw IOClient without proxy', () {
+      final client = proxyIoClient();
+      expect(client, isA<IOClient>());
+    });
+
+    test('creates raw IOClient with proxy rules and badCertificateCallback', () {
+      final client = proxyIoClient(
+        proxy: {
+          'https_proxy': 'https://127.0.0.1:7890/',
+          'http_proxy': 'http://127.0.0.1:7890/',
+        },
+        badCertificateCallback: (cert, host, port) => true,
+      );
+      expect(client, isA<IOClient>());
     });
   });
 }
