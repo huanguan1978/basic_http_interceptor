@@ -1,3 +1,10 @@
+## 0.1.10
+
+### Added
+- **Sub-library Entrypoint `package:basic_http_interceptor/testing.dart`**:
+  - Re-exports `package:http/testing.dart` (exposing [MockClient] and [MockClientHandler]) for deterministic unit testing and mocking.
+  - Allows downstream projects and unit test suites to mock HTTP calls directly without adding `package:http` to their own `pubspec.yaml` `dev_dependencies`.
+
 ## 0.1.9
 
 ### Added

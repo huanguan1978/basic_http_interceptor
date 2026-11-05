@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:basic_http_interceptor/basic_http_interceptor.dart';
-import 'package:basic_http_interceptor/http.dart';
 import 'package:basic_http_interceptor/http_interceptor.dart';
 import 'package:basic_http_interceptor/io_client.dart';
+import 'package:basic_http_interceptor/testing.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
@@ -254,6 +254,37 @@ void main() {
         badCertificateCallback: (cert, host, port) => true,
       );
       expect(client, isA<IOClient>());
+    });
+  });
+
+  group('Testing sub-library tests', () {
+    test('exports MockClient and handles requests correctly', () async {
+      final mock = MockClient((request) async {
+        return Response('{"status":"ok"}', 200,
+            headers: {'content-type': 'application/json'});
+      });
+
+      final response = await mock.get(Uri.parse('https://example.com/api'));
+      expect(response.statusCode, equals(200));
+      expect(response.body, equals('{"status":"ok"}'));
+    });
+
+    test('works seamlessly as the client for InterceptedClient', () async {
+      final mock = MockClient((request) async {
+        expect(request.headers['Custom-Header'], equals('TestValue'));
+        return Response('intercepted response', 200);
+      });
+
+      final client = InterceptedClient.build(
+        client: mock,
+        interceptors: [
+          InterceptorHeader(requestHeader: {'Custom-Header': 'TestValue'}),
+        ],
+      );
+
+      final response = await client.get(Uri.parse('https://example.com/test'));
+      expect(response.statusCode, equals(200));
+      expect(response.body, equals('intercepted response'));
     });
   });
 }

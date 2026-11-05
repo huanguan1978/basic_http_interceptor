@@ -11,7 +11,7 @@ A lightweight, pluggable, and battery-included HTTP interceptor toolkit for Dart
 
 - 🧩 **Modular & Pluggable**: Mix and match standalone interceptors for logging, headers, timeout abortion, and functional hooks like building blocks.
 - ⚡ **Zero-Boilerplate Wrapper**: Set up an `InterceptedClient` with proxies and interceptor chains in just a few lines of code.
-- 📦 **Clean Sub-Libraries**: Dedicated sub-library entrypoints (`http.dart`, `http_interceptor.dart`, & `io_client.dart`) keep the root namespace clean while providing full access to raw HTTP primitives, interceptor contracts, and native IO clients without extra dependencies.
+- 📦 **Clean Sub-Libraries**: Dedicated sub-library entrypoints (`http.dart`, `http_interceptor.dart`, `io_client.dart`, & `testing.dart`) keep the root namespace clean while providing full access to raw HTTP primitives, interceptor contracts, native IO clients, and unit testing mocks without extra dependencies.
 - 🌐 **Cross-Platform Ready**: Out-of-the-box support for HTTP, HTTPS, and SOCKS5 proxies across all desktop and mobile platforms, with seamless fallback on Web.
 
 ---
@@ -287,6 +287,34 @@ final rawClient = proxyIoClient(
   // Optional: bypass self-signed certificates in local development
   badCertificateCallback: (cert, host, port) => true,
 );
+```
+
+### 4. `package:basic_http_interceptor/testing.dart`
+Re-exports `package:http/testing.dart` (`MockClient`) for unit testing. Enables downstream projects to mock HTTP requests directly in their test suites without declaring an extra dependency on `package:http` in `pubspec.yaml`:
+
+```dart
+import 'dart:convert';
+import 'package:basic_http_interceptor/basic_http_interceptor.dart';
+import 'package:basic_http_interceptor/testing.dart';
+import 'package:test/test.dart';
+
+void main() {
+  test('mocks HTTP request with interceptor', () async {
+    final mockClient = MockClient((request) async {
+      return Response(jsonEncode({'status': 'ok'}), 200);
+    });
+
+    final client = InterceptedClient.build(
+      client: mockClient,
+      interceptors: [
+        InterceptorHeader(requestHeader: {'Accept': 'application/json'}),
+      ],
+    );
+
+    final response = await client.get(Uri.parse('https://example.com'));
+    expect(response.statusCode, 200);
+  });
+}
 ```
 
 ---
